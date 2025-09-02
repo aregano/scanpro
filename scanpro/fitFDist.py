@@ -88,7 +88,7 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
         if n_zero == 1:
             print("One very small variance detected, has been offset away from zero")
         else:
-            print(n_zero + " very small variances detected! have been offset away from zero")
+            print(f"{n_zero} very small variances detected! have been offset away from zero")
         x[i] = m * 1e-12
 
     # store non robust results
