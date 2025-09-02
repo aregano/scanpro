@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from scipy.stats import t, f
 from scanpro.utils import pmin, pmax, is_fullrank, cov_to_corr, matvec
@@ -242,7 +243,11 @@ def tmixture_vector(tstat, stdev_unscaled, df, proportion, v0_lim=np.array([])):
     if v0_lim.any():
         v0 = pmin(pmax(v0, v0_lim[0]), v0_lim[1])
 
-    return np.mean(v0)
+    mean_v0 = np.mean(v0)
+    if mean_v0 > sys.maxsize:
+        mean_v0 = sys.maxsize
+
+    return mean_v0
 
 
 def classify_tests_f(fit, df=1e10):
