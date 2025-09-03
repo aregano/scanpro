@@ -89,7 +89,7 @@ def scanpro(data, clusters_col, conds_col,
             raise ValueError("You can't set conditions with pairwise! Set conditions=None to do pairwise comparison.")
         # check if conditions are in a list
         if not isinstance(conditions, list) and not isinstance(conditions, np.ndarray) \
-            and not isinstance(conditions, tuple):
+                and not isinstance(conditions, tuple):
             raise ValueError("Please provide names of conditions of interest as a list or tuple!")
 
         # check if conditions are in data
@@ -148,7 +148,7 @@ def scanpro(data, clusters_col, conds_col,
         combined = combined.T.drop_duplicates().T
         columns = ['baseline_props'] + \
             [f'mean_props_{cond}' for cond in conditions] + \
-                [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
+            [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
 
         combined = combined.loc[:, ~combined.columns.duplicated()][columns]
         out.results = combined  # combined dataframe with all p-values
@@ -160,7 +160,7 @@ def scanpro(data, clusters_col, conds_col,
             combined_sim = combined_sim.T.drop_duplicates().T
             columns = ['baseline_props'] + \
                 [f'mean_props_{cond}' for cond in conditions] + \
-                    [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
+                [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
 
             combined_sim = combined_sim.loc[:, ~combined_sim.columns.duplicated()][columns]
             out.sim_results = combined_sim  # combined dataframe with all p-values

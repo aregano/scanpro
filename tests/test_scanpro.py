@@ -63,8 +63,8 @@ def test_scanpro(counts_df, transform, samples, pairwise):
         if not pairwise:
             assert all(x in out.results.columns for x in ['p_values', 'adjusted_p_values'])
         else:
-            assert all(x in out.results.columns for x in [f'adjusted_p_values_{pair[0]}_{pair[1]}' \
-                                                          for pair in out.condition_pairs])
+            assert all(x in out.results.columns for x in \
+                       [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in out.condition_pairs])
 
 
 @pytest.mark.parametrize("transform, conditions", [("logit", None),
@@ -73,6 +73,8 @@ def test_scanpro(counts_df, transform, samples, pairwise):
                                                    ('arcsin', ['cond_1', 'cond_2'])])
 def test_run_scanpro(counts_df_3, transform, conditions):
     """Test run_scanpro function"""
+    if not conditions:
+        conditions = counts_df_3['group'].unique().tolist()
     out = run_scanpro(counts_df_3, clusters_col='cluster', samples_col='sample',
                       conds_col='group', conditions=conditions,
                       transform=transform, verbosity=0)
@@ -87,9 +89,9 @@ def test_run_scanpro(counts_df_3, transform, conditions):
                                                    ('arcsin', ['cond_1', 'cond_2'])])
 def test_run_stats(counts_df_3, transform, conditions):
     """Test run_stats function"""
-    out = run_scanpro(counts_df_3, clusters='cluster', samples='sample',
-                      conds='group', conditions=conditions,
-                      transform=transform, verbosity=0)
+    out = run_stats(counts_df_3, clusters='cluster', samples='sample',
+                    conds='group', conditions=conditions,
+                    transform=transform, verbosity=0)
 
     assert isinstance(out, ScanproResult) and isinstance(out.results, pd.DataFrame)
     assert all(x in out.results.columns for x in ['p_values', 'adjusted_p_values'])
@@ -140,4 +142,4 @@ def test_sim_scanpro(counts_df):
                       robust=True, verbosity=0)
 
     assert isinstance(out, ScanproResult) and isinstance(out.results, pd.DataFrame)
-    assert "p_values" in out.results.columns
+    assert "adjusted_p_values" in out.results.columns

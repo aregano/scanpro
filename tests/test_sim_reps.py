@@ -58,8 +58,9 @@ def counts_list(counts_df):
     for i in range(n_sims):
         # generate replicates
         rep_data = generate_reps(data=counts_df, n_reps=n_reps, sample_col=samples_col)
+        conditions = rep_data[conds_col].unique().tolist()
 
-        # run propeller
+        # run scanpro
         try:
             out_sim = run_scanpro(rep_data, clusters_col=clusters_col, samples_col=rep_samples_col,
                                   conds_col=conds_col, transform=transform,
