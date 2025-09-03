@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
-from scanpro import scanpro, run_scanpro, anova, t_test, sim_scanpro
+from scanpro import scanpro, run_scanpro, run_stats, anova, t_test, sim_scanpro
 from scanpro.get_transformed_props import get_transformed_props
 from scanpro.linear_model import create_design
 from scanpro.utils import simulate_cell_counts, convert_counts_to_df
@@ -46,21 +46,25 @@ def test_import():
     assert scanpro.__name__ == "scanpro"
 
 
-@pytest.mark.parametrize("transform, samples", [("logit", None),
-                                                ("arcsin", None),
-                                                ('logit', 'sample'),
-                                                ('arcsin', 'sample')])
-def test_scanpro(counts_df, transform, samples):
+@pytest.mark.parametrize("transform, samples, pairwise", [("logit", None, False),
+                                                          ("arcsin", None, False),
+                                                          ('logit', 'sample', False),
+                                                          ('arcsin', 'sample', True)])
+def test_scanpro(counts_df, transform, samples, pairwise):
     """Test scanpro wrapper function"""
     out = scanpro(counts_df, 'cluster', 'group', samples_col=samples,
-                  transform=transform, verbosity=0)
+                  transform=transform, pairwise=pairwise, verbosity=0)
 
     assert isinstance(out, ScanproResult) and isinstance(out.results, pd.DataFrame)
     if samples is None:
         assert isinstance(out.sim_results, pd.DataFrame)
-        assert "p_values" in out.results.columns and "p_values" in out.sim_results.columns
+        assert "adjusted_p_values" in out.results.columns and "adjusted_p_values" in out.sim_results.columns
     else:
-        assert all(x in out.results.columns for x in ['p_values', 'adjusted_p_values'])
+        if not pairwise:
+            assert all(x in out.results.columns for x in ['p_values', 'adjusted_p_values'])
+        else:
+            assert all(x in out.results.columns for x in [f'adjusted_p_values_{pair[0]}_{pair[1]}' \
+                                                          for pair in out.condition_pairs])
 
 
 @pytest.mark.parametrize("transform, conditions", [("logit", None),
@@ -69,6 +73,20 @@ def test_scanpro(counts_df, transform, samples):
                                                    ('arcsin', ['cond_1', 'cond_2'])])
 def test_run_scanpro(counts_df_3, transform, conditions):
     """Test run_scanpro function"""
+    out = run_scanpro(counts_df_3, clusters_col='cluster', samples_col='sample',
+                      conds_col='group', conditions=conditions,
+                      transform=transform, verbosity=0)
+
+    assert isinstance(out, ScanproResult) and isinstance(out.results, pd.DataFrame)
+    assert all(x in out.results.columns for x in ['p_values', 'adjusted_p_values'])
+
+
+@pytest.mark.parametrize("transform, conditions", [("logit", None),
+                                                   ("arcsin", None),
+                                                   ('logit', ['cond_1', 'cond_2']),
+                                                   ('arcsin', ['cond_1', 'cond_2'])])
+def test_run_stats(counts_df_3, transform, conditions):
+    """Test run_stats function"""
     out = run_scanpro(counts_df_3, clusters='cluster', samples='sample',
                       conds='group', conditions=conditions,
                       transform=transform, verbosity=0)
