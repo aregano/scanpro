@@ -1,5 +1,6 @@
 """ A class containing the results of a scanpro analysis """
 
+from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -43,13 +44,13 @@ class ScanproResult():
 
         return prop_merged
 
-    def plot(self,
-             kind='stripplot',
-             clusters=None,
-             n_columns=3,
-             figsize=None,
-             show=True,
-             save=False):
+    def _single_plot(self,
+                     kind='stripplot',
+                     clusters=None,
+                     n_columns=3,
+                     figsize=None,
+                     show=True,
+                     save=False):
         """Plot proportions pro condition
 
         :param str kind: Kind of plot (stripplot, barplot and boxplot), defaults to 'stripplot'
@@ -267,7 +268,48 @@ class ScanproResult():
             plt.savefig(fname=save, dpi=600, bbox_inches='tight')
 
         if not show:
-            return ax
+            return fig
+
+    def plot(self,
+             kind='stripplot',
+             clusters=None,
+             n_columns=3,
+             figsize=None,
+             show=True,
+             save=False):
+
+        if self.pairwise:
+            axes = []
+            for pair in self.condition_pairs:
+                obj = self.results_dict[pair]
+                if save:
+                    fname = f"{Path(save).parent}/{Path(save).stem}_{pair[0]}_{pair[1]}{Path(save).suffix}"
+                else:
+                    fname = False
+                print(f"comparing {pair[0]} vs {pair[1]}")
+                fig = obj._single_plot(kind=kind,
+                                       clusters=clusters,
+                                       n_columns=n_columns,
+                                       figsize=figsize,
+                                       show=show,
+                                       save=fname)
+                if show:
+                    plt.show()
+                else:
+                    axes.append(fig.axes)
+
+            if not show:
+                return axes
+
+        else:
+            fig = self._single_plot(kind=kind,
+                                    clusters=clusters,
+                                    n_columns=n_columns,
+                                    figsize=figsize,
+                                    show=show,
+                                    save=save)
+            if not show:
+                return fig.axes
 
     def plot_samples(self, stacked=True,
                      x='samples',
