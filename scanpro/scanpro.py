@@ -89,7 +89,7 @@ def scanpro(data, clusters_col, conds_col,
             raise ValueError("You can't set conditions with pairwise! Set conditions=None to do pairwise comparison.")
         # check if conditions are in a list
         if not isinstance(conditions, list) and not isinstance(conditions, np.ndarray) \
-        and not isinstance(conditions, tuple):
+            and not isinstance(conditions, tuple):
             raise ValueError("Please provide names of conditions of interest as a list or tuple!")
 
         # check if conditions are in data
@@ -97,7 +97,7 @@ def scanpro(data, clusters_col, conds_col,
         check = any(not_in_data)
         if check:
             s1 = "The following conditions could not be found in data: "
-            s2 = ', '.join([conditions[i] for i in np.where(not_in_data)[0]])
+            s2 = ', '.join([str(conditions[i]) for i in np.where(not_in_data)[0]])
             raise ValueError(s1 + s2)
 
     else:
@@ -114,9 +114,9 @@ def scanpro(data, clusters_col, conds_col,
         for pair in condition_pairs:
             logger.info(f"Comparing {pair[0]} Vs {pair[1]}")
             res = run_scanpro(data, clusters_col=clusters_col, samples_col=samples_col, conds_col=conds_col,
-                          covariates=covariates, transform=transform, conditions=pair,
-                          n_reps=n_reps, run_partial_sim=run_partial_sim, robust=robust,
-                          verbosity=1, seed=seed)
+                              covariates=covariates, transform=transform, conditions=pair,
+                              n_reps=n_reps, n_sims=n_sims, run_partial_sim=run_partial_sim,
+                              robust=robust, verbosity=1, seed=seed)
             res_pairs[pair] = res
 
         out = ScanproResult()
@@ -132,7 +132,6 @@ def scanpro(data, clusters_col, conds_col,
         out.conds_col = conds_col
         out.covariates = covariates
 
-
         # add combined results in one dataframe
         for pair, df in res_pairs.items():
             cond_1 = pair[0]
@@ -141,34 +140,30 @@ def scanpro(data, clusters_col, conds_col,
                               inplace=True)
             if df.repd != 'all':
                 df.sim_results.rename(columns={'adjusted_p_values': f'adjusted_p_values_{cond_1}_{cond_2}'},
-                              inplace=True)
+                                      inplace=True)
 
             res_pairs[pair] = df
 
         combined = pd.concat([df.results for df in res_pairs.values()], axis=1, join='inner')
         combined = combined.T.drop_duplicates().T
         columns = ['baseline_props'] + \
-        [f'mean_props_{cond}' for cond in conditions] + \
-        [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
+            [f'mean_props_{cond}' for cond in conditions] + \
+                [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
 
         combined = combined.loc[:, ~combined.columns.duplicated()][columns]
-
         out.results = combined  # combined dataframe with all p-values
 
         # if un- or partially replicated, add simulated results
-        check_sim = [True if df.repd=='non' or df.repd=='partial' else False for df in res_pairs.values()]
+        check_sim = [True if df.repd == 'non' or df.repd == 'partial' else False for df in res_pairs.values()]
         if any(check_sim):
-            combined_sim = pd.concat([df.sim_results if df.repd=='partial' else df.results for df in res_pairs.values()], axis=1, join='inner')
+            combined_sim = pd.concat([df.sim_results if df.repd == 'partial' else df.results for df in res_pairs.values()], axis=1, join='inner')
             combined_sim = combined_sim.T.drop_duplicates().T
             columns = ['baseline_props'] + \
-            [f'mean_props_{cond}' for cond in conditions] + \
-            [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
+                [f'mean_props_{cond}' for cond in conditions] + \
+                    [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in res_pairs.keys()]
 
             combined_sim = combined_sim.loc[:, ~combined_sim.columns.duplicated()][columns]
-
             out.sim_results = combined_sim  # combined dataframe with all p-values
-            #out.sim_design = df.sim_design
-
 
     else:
         out = run_scanpro(data, clusters_col=clusters_col, samples_col=samples_col, conds_col=conds_col,
@@ -222,6 +217,7 @@ def run_scanpro(data, clusters_col, conds_col,
     """
 
     logger = ScanproLogger(verbosity)  # create logger instance
+    np.random.seed(seed)
 
     # if samples_col is None, data is not replicated
     if samples_col is None:
@@ -312,7 +308,7 @@ def run_scanpro(data, clusters_col, conds_col,
         # run scanpro normally
         logger.info("Running scanpro with original replicates...")
         out = run_stats(data, clusters=clusters_col, samples=samples_col, conds=conds_col, covariates=covariates,
-                          transform=transform, conditions=conditions, robust=robust, verbosity=verbosity)
+                        transform=transform, conditions=conditions, robust=robust, verbosity=verbosity)
 
         if run_partial_sim:
             replicated = 'partial'
@@ -330,7 +326,7 @@ def run_scanpro(data, clusters_col, conds_col,
     else:
         replicated = 'all'
         out = run_stats(data, clusters=clusters_col, samples=samples_col, conds=conds_col, covariates=covariates,
-                          transform=transform, conditions=conditions, robust=robust, verbosity=verbosity)
+                        transform=transform, conditions=conditions, robust=robust, verbosity=verbosity)
 
     # Add additional clusters not included due to 0-counts in samples
     all_clusters = data[clusters_col].unique()
@@ -364,7 +360,7 @@ def run_scanpro(data, clusters_col, conds_col,
     # if data is not replicated, add results also as sim_results for plotting
     if not repd:
         out.sim_results = out.results
- 
+
     # add simulated results for partially replicated data
     if partially_repd and run_partial_sim:
         out.sim_results = out_sim.results
@@ -377,7 +373,7 @@ def run_scanpro(data, clusters_col, conds_col,
 
 
 def run_stats(data, clusters, samples, conds, transform='logit',
-                covariates=None, conditions=None, robust=True, verbosity=1):
+              covariates=None, conditions=None, robust=True, verbosity=1):
     """Test the significance of changes in cell proportions across conditions in single-cell data. The function
     uses empirical bayes to moderate statistical tests to give robust estimation of significance.
 
@@ -659,7 +655,6 @@ def sim_scanpro(data, clusters_col, conds_col,
     # Setup information for results
     prop_columns = [col for col in combined_results.columns if 'mean_props' in col]
     out = combined_results.groupby(clusters_col)[prop_columns + ["adjusted_p_values"]].median()
-    #out.rename(columns={"adjusted_p_values": "p_values"}, inplace=True)
 
     # Collect results from all simulations
     design_list = [obj.design for obj in result_objects]
