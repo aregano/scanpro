@@ -1,7 +1,7 @@
 import pytest
 
 import numpy as np
-from scanpro.scanpro import run_scanpro
+from scanpro.scanpro import run_stats
 from scanpro.sim_reps import generate_reps, combine, get_mean_sim
 from scanpro.utils import simulate_cell_counts, convert_counts_to_df
 
@@ -62,9 +62,9 @@ def counts_list(counts_df):
 
         # run scanpro
         try:
-            out_sim = run_scanpro(rep_data, clusters_col=clusters_col, samples_col=rep_samples_col,
-                                  conds_col=conds_col, transform=transform,
-                                  conditions=conditions, robust=True, verbosity=0)
+            out_sim = run_stats(rep_data, clusters_col=clusters_col, samples_col=rep_samples_col,
+                                conds_col=conds_col, transform=transform,
+                                conditions=conditions, robust=True, verbosity=0)
         # workaround brentq error "f(a) and f(b) must have different signs"
         # rerun simulation instead of crashing
         except ValueError:
