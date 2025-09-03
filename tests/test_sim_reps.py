@@ -64,7 +64,7 @@ def counts_list(counts_df):
         try:
             out_sim = run_scanpro(rep_data, clusters_col=clusters_col, samples_col=rep_samples_col,
                                   conds_col=conds_col, transform=transform,
-                                  conditions=None, robust=True, verbosity=0)
+                                  conditions=conditions, robust=True, verbosity=0)
         # workaround brentq error "f(a) and f(b) must have different signs"
         # rerun simulation instead of crashing
         except ValueError:

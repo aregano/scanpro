@@ -63,8 +63,7 @@ def test_scanpro(counts_df, transform, samples, pairwise):
         if not pairwise:
             assert all(x in out.results.columns for x in ['p_values', 'adjusted_p_values'])
         else:
-            assert all(x in out.results.columns for x in \
-                       [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in out.condition_pairs])
+            assert all(x in out.results.columns for x in [f'adjusted_p_values_{pair[0]}_{pair[1]}' for pair in out.condition_pairs])
 
 
 @pytest.mark.parametrize("transform, conditions", [("logit", None),
