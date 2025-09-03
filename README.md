@@ -36,3 +36,11 @@ To show the results, run
 ```out.results```. 
 
 You can plot the results by calling ```out.plot()```.
+
+## Documentation
+
+A detailed documentation can be found here: [Manual](https://scanpro.readthedocs.io/en/latest/).
+
+## Citation
+
+Alayoubi, Y., Bentsen, M. & Looso, M. Scanpro is a tool for robust proportion analysis of single-cell resolution data. *Sci Rep* **14**, 15581 (2024). [https://doi.org/10.1038/s41598-024-66381-7](https://doi.org/10.1038/s41598-024-66381-7)
