@@ -661,7 +661,7 @@ def sim_scanpro(data, clusters_col, conds_col,
                 out_sim.results[col].fillna(0, inplace=True)
             elif "prop_ratio" in col:
                 out_sim.results[col].fillna(0, inplace=True)
-    
+
         # save results object
         result_objects.append(out_sim)
 
