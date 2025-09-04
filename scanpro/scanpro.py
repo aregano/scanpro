@@ -48,6 +48,7 @@ def scanpro(data, clusters_col, conds_col,
         (3 for #cells<5000, 5 for #cells<14000 and 8 for #cells>14000), defaults to 'auto'.
     :param bool run_partial_sim: If True, the bootstrapping method will be also performed on datasets that are
         partially replicated (where some samples have replicates).
+    :param bool pairwise: If True, all pairwise comparisons between conditions will be performed, defaults to False.
     :param int verbosity: Verbosity level for logging progress. 0=silent, 1=info, 2=debug. Defaults to 1.
     :param int seed: Seed for random number generator, defaults to 1.
 
@@ -83,10 +84,13 @@ def scanpro(data, clusters_col, conds_col,
         s += ', '.join(columns_not_in_data)
         raise ValueError(s)
 
+    # check if pairwise and conditions are both set
+    if pairwise and conditions is not None:
+        logger.info("You can't set conditions with pairwise! Changing conditions=None to do pairwise comparisons...")
+        conditions = None
+
     # check conditions
     if conditions is not None:
-        if pairwise:
-            raise ValueError("You can't set conditions with pairwise! Set conditions=None to do pairwise comparison.")
         # check if conditions are in a list
         if not isinstance(conditions, list) and not isinstance(conditions, np.ndarray) \
                 and not isinstance(conditions, tuple):
@@ -117,6 +121,8 @@ def scanpro(data, clusters_col, conds_col,
                               covariates=covariates, transform=transform, conditions=pair,
                               n_reps=n_reps, n_sims=n_sims, run_partial_sim=run_partial_sim,
                               robust=robust, verbosity=1, seed=seed)
+
+            res.results.sort_index(inplace=True)
             res_pairs[pair] = res
 
         out = ScanproResult()
@@ -641,6 +647,21 @@ def sim_scanpro(data, clusters_col, conds_col,
             i -= 1
             continue
 
+        # Add additional clusters not included due to 0-counts in samples
+        all_clusters = rep_data[clusters_col].unique()
+        missing_clusters = set(all_clusters) - set(out_sim.results.index.unique())
+
+        zero_rows = pd.DataFrame(np.nan, index=list(missing_clusters), columns=out_sim.results.columns)
+        out_sim.results = pd.concat([out_sim.results, zero_rows])
+        out_sim.results.index.rename(clusters_col, inplace=True)
+        for col in out_sim.results.columns:
+            if "p_values" in col:
+                out_sim.results[col].fillna(1, inplace=True)
+            elif "mean_props" in col:
+                out_sim.results[col].fillna(0, inplace=True)
+            elif "prop_ratio" in col:
+                out_sim.results[col].fillna(0, inplace=True)
+    
         # save results object
         result_objects.append(out_sim)
 
@@ -686,6 +707,7 @@ def sim_scanpro(data, clusters_col, conds_col,
 
         output_obj = ScanproResult()
         output_obj.results = out
+        output_obj.results.index.names = ['clusters']  # rename index column
         output_obj.counts = counts  # original counts
         output_obj.sim_counts = counts_mean  # mean of all simulated counts
         output_obj.props = props
