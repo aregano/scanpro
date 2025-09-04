@@ -6,6 +6,7 @@ import seaborn as sns
 import pandas as pd
 import math
 import numpy as np
+from scanpro.logging import ScanproLogger
 
 
 class ScanproResult():
@@ -51,13 +52,15 @@ class ScanproResult():
                      figsize=None,
                      show=True,
                      save=False):
-        """Plot proportions pro condition
+        """Plot proportions pro condition for one comparison
 
         :param str kind: Kind of plot (stripplot, barplot and boxplot), defaults to 'stripplot'
         :param list or str clusters: Specify clusters to plot, if None, all clusters will be plotted, defaults to None
         :param int n_columns: Number of columns in the figure, defaults to 3
         :param tuple figsize: Figure size, defaults to None (size is automatic)
+        :param bool show: If True, the plot is shown, defaults to True
         :param str save: Path to save plot, add extension at the end e.g. 'path/to/file.png', defaults to False
+        :return matplotlib.figure.Figure: Figure object if show is False
         """
 
         # get results dataframe
@@ -268,6 +271,7 @@ class ScanproResult():
             plt.savefig(fname=save, dpi=600, bbox_inches='tight')
 
         if not show:
+            plt.close()
             return fig
 
     def plot(self,
@@ -276,8 +280,22 @@ class ScanproResult():
              n_columns=3,
              figsize=None,
              show=True,
+             verbosity=1,
              save=False):
+        """Plot proportions pro condition for all comparisons
 
+        :param str kind: Kind of plot (stripplot, barplot and boxplot), defaults to 'stripplot'
+        :param list or str clusters: Specify clusters to plot, if None, all clusters will be plotted, defaults to None
+        :param int n_columns: Number of columns in the figure, defaults to 3
+        :param tuple figsize: Figure size, defaults to None (size is automatic)
+        :param bool show: If True, the plot is shown, defaults to True
+        :param str save: Path to save plot, add extension at the end e.g. 'path/to/file.png', defaults to False
+        :param int verbosity: Verbosity level, defaults to 1
+
+        :return list: List of axes if show is False
+        """
+
+        logger = ScanproLogger(verbosity)
         if self.pairwise:
             axes = []
             for pair in self.condition_pairs:
@@ -286,7 +304,7 @@ class ScanproResult():
                     fname = f"{Path(save).parent}/{Path(save).stem}_{pair[0]}_{pair[1]}{Path(save).suffix}"
                 else:
                     fname = False
-                print(f"comparing {pair[0]} vs {pair[1]}")
+                logger.info(f"Plotting {pair[0]} vs {pair[1]}")
                 fig = obj._single_plot(kind=kind,
                                        clusters=clusters,
                                        n_columns=n_columns,
