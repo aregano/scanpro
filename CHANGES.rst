@@ -1,3 +1,9 @@
+0.4.0 (03.09.2025)
+-------------------
+- Add pairwise testing: test each pair of conditions individually
+- Remove numpy version restriction
+- Refactor main module
+
 0.3.2 (01.08.2024)
 -------------------
 - Replace Fortran implementation of gausq2 function with python

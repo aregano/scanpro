@@ -45,7 +45,7 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
     if n < 2:
         return res
     if n == 2:
-        return (fit_f_dist(x, df1=df1))
+        return fit_f_dist(x, df1=df1)
 
     # check df1
     if len(df1) != n:
@@ -88,7 +88,7 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
         if n_zero == 1:
             print("One very small variance detected, has been offset away from zero")
         else:
-            print(n_zero + " very small variances detected! have been offset away from zero")
+            print(f"{n_zero} very small variances detected! have been offset away from zero")
         x[i] = m * 1e-12
 
     # store non robust results
@@ -137,7 +137,7 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
     zrq = np.quantile(z_resid, q=prob)
     zwins = pmin(pmax(z_resid, zrq[0]), zrq[1])
     zwmean = np.mean(zwins)
-    zwvar = np.mean((zwins - zwmean)**2) * n / (n - 1)
+    zwvar = np.mean((zwins - zwmean) ** 2) * n / (n - 1)
 
     # Theoretical Winsorized moments
     g = gauss_quad_prob(128, dist='uniform')  # g[0] -> nodes, g[1] -> weights
@@ -307,7 +307,7 @@ def fit_f_dist(x, df1, covariate=None):
     e = z - digamma(df1 / 2) + np.log(df1 / 2)
     if not covariate:
         emean = np.mean(e)
-        evar = sum(((e - emean)**2) / (nok - 1))
+        evar = sum(((e - emean) ** 2) / (nok - 1))
     # estimate scale and df2
     evar = evar - np.mean(polygamma(1, df1 / 2))  # trigamma function
     # calcualte scale and df2
@@ -409,9 +409,9 @@ def winsorized_moments(df1, df2, winsor_tail_p, linkfun, linkinv, g):
     nodes = q[0] + (q[1] - q[0]) * g[0]
     f_nodes = linkinv(nodes)
     z_nodes = np.log(f_nodes)
-    f1 = f.pdf(f_nodes, dfn=df1, dfd=df2) / (1 - nodes)**2
+    f1 = f.pdf(f_nodes, dfn=df1, dfd=df2) / (1 - nodes) ** 2
     q21 = q[1] - q[0]
     m = q21 * sum(g[1] * f1 * z_nodes) + sum(zq * winsor_tail_p)
-    v = q21 * sum(g[1] * f1 * (z_nodes - m)**2) + sum((zq - m)**2 * winsor_tail_p)
+    v = q21 * sum(g[1] * f1 * (z_nodes - m) ** 2) + sum((zq - m) ** 2 * winsor_tail_p)
 
     return np.array([m, v])

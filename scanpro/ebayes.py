@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from scipy.stats import t, f
 from scanpro.utils import pmin, pmax, is_fullrank, cov_to_corr, matvec
@@ -35,7 +36,8 @@ def ebayes(fit, proportion=0.01, stdev_coef_lim=[0.1, 4], robust=False, winsor_t
 
     # moderated t statistics
     # calculate prior/post variance and prior degrees of freedom using empirical bayes
-    var_prior, var_post, df_prior = squeeze_var(sigma**2, df_residual, robust=robust, winsor_tail_p=winsor_tail_p)
+    var_prior, var_post, df_prior = squeeze_var(sigma ** 2, df_residual, robust=robust,
+                                                winsor_tail_p=winsor_tail_p)
 
     # save results to res dictionary
     res = {'s2_prior': var_prior, 's2_post': var_post, 'df_prior': df_prior}
@@ -49,17 +51,17 @@ def ebayes(fit, proportion=0.01, stdev_coef_lim=[0.1, 4], robust=False, winsor_t
     res['p_value'] = 2 * t.cdf(-abs(res["t"]), df=np.reshape(df_total, (len(res["t"]), 1)))
 
     # B-statistics
-    var_prior_lim = stdev_coef_lim**2 / res['s2_prior']
+    var_prior_lim = stdev_coef_lim ** 2 / res['s2_prior']
     res['var_prior'] = tmixture_matrix(res['t'], stdev, df_total, proportion, var_prior_lim)
     if np.any(np.isnan(res['var_prior'])):
         res['var_prior'][np.isnan(res['var_prior'])] = 1 / res['s2_prior']
         print("Estimation of var_prior failed - set to default value")
     r = np.outer(np.repeat(1, len(res['t'])), res['var_prior'])
-    r = (stdev**2 + r) / stdev**2
-    t2 = res['t']**2
+    r = (stdev ** 2 + r) / stdev ** 2
+    t2 = res['t'] ** 2
 
     # check for any infinite prior degrees of freedom
-    inf_df = res['df_prior'] > 10**6
+    inf_df = res['df_prior'] > 10 ** 6
     if any(inf_df):
         kernel = t2 * (1 - 1 / r) / 2
         if any(~inf_df):
@@ -228,7 +230,7 @@ def tmixture_vector(tstat, stdev_unscaled, df, proportion, v0_lim=np.array([])):
     # Select top statistics
     o = np.argsort(tstat)[::-1][0:n_target]  # in decreasing order
     tstat = tstat[o]
-    v1 = stdev_unscaled[o]**2
+    v1 = stdev_unscaled[o] ** 2
 
     # Compare to order statistics
     r = np.arange(1, n_target + 1)
@@ -238,11 +240,15 @@ def tmixture_vector(tstat, stdev_unscaled, df, proportion, v0_lim=np.array([])):
     pos = p_target > p0
     if pos.any():
         q_target = t.ppf(1 - p_target[pos] / 2, max_df)  # upper tail
-        v0[pos] = v1[pos] * ((tstat[pos] / q_target)**2 - 1)
+        v0[pos] = v1[pos] * ((tstat[pos] / q_target) ** 2 - 1)
     if v0_lim.any():
         v0 = pmin(pmax(v0, v0_lim[0]), v0_lim[1])
 
-    return np.mean(v0)
+    mean_v0 = np.mean(v0)
+    if mean_v0 > sys.maxsize:
+        mean_v0 = sys.maxsize
+
+    return mean_v0
 
 
 def classify_tests_f(fit, df=1e10):
@@ -275,7 +281,7 @@ def classify_tests_f(fit, df=1e10):
 
     # check if there is only one statistic
     if n_tests == 1:
-        f_stat['stat'] = tstat**2
+        f_stat['stat'] = tstat ** 2
         f_stat['df1'] = 1
         f_stat['df2'] = df
         return f_stat
@@ -286,7 +292,7 @@ def classify_tests_f(fit, df=1e10):
     Q = matvec(e_vectors[:, 0:r], 1 / np.sqrt(e_values[0:r]) / np.sqrt(r))
 
     # save results
-    f_stat['stat'] = (tstat @ Q)**2 @ np.ones((r, 1))
+    f_stat['stat'] = (tstat @ Q) ** 2 @ np.ones((r, 1))
     f_stat['df1'] = r
     f_stat['df2'] = df
 
