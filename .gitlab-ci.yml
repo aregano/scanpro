@@ -46,7 +46,7 @@ pass:
 # E501 = Line too long
 # W503 = Line break occurred before a binary operator
 linting:
-  stage: lint
+  stage: test
   image: docker:28.5
   tags:
     - docker
