@@ -46,9 +46,13 @@ pass:
 # E501 = Line too long
 # W503 = Line break occurred before a binary operator
 linting:
-  stage: test
+  stage: lint
+  image: docker:28.5
   tags:
-    - coverage
+    - docker
+  services:
+    - name: docker:dind
+      alias: docker
   script:
     - pip install flake8
     - flake8 scanpro setup.py tests --ignore=E501,W503 --extend-exclude=scanpro/__init__.py  # exclude __init__ due to version import
@@ -62,8 +66,12 @@ linting:
 
 tests:
   stage: test
+  image: docker:28.5
   tags:
-    - coverage
+    - docker
+  services:
+    - name: docker:dind
+      alias: docker
   coverage: '/TOTAL.*\s(\d*.\d*\%)/'
   script:
     - pip install pytest
@@ -121,9 +129,6 @@ deploy-pages-MR:
   script: 
     - ls -l docs/
     - echo "deploy"
-  artifacts:
-    paths:
-      - docs/build/html/
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       allow_failure: True
