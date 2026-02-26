@@ -299,7 +299,7 @@ def simulate_cell_counts_2(props, n_reps, a, b, n_conds=2, n=20, mu=5000):
     for k in range(len(props)):  # len(props) = props.shape[0]; iterate over clusters
         for i in range(0, total_reps, n_reps):  # iterate over samples
             # draw random proportions from beta distribution for each sample
-            true_p[k, i:i + n_reps] = np.random.beta(a[k], b[i // n_reps][k], n_reps)
+            true_p[k, i:i + n_reps] = np.random.beta(a.iloc[k], b[i // n_reps].iloc[k], n_reps)
 
     # generate counts for each cluster in each replicate
     counts_sim = np.zeros((len(true_p), total_reps))
@@ -331,7 +331,7 @@ def convert_counts_to_df(counts, prop_cols=None, meta_cols=None, n_cells=1, colu
     # If not given, try to get prop_cols and meta_cols automatically
     if prop_cols is None:
         dtypes = counts.dtypes.astype(str)
-        prop_cols = [col for i, col in enumerate(counts.columns) if "float" in dtypes[i] or "int" in dtypes[i]]
+        prop_cols = [col for i, col in enumerate(counts.columns) if "float" in dtypes.iloc[i] or "int" in dtypes.iloc[i]]
 
     if meta_cols is None:
         meta_cols = [col for col in counts.columns if col not in prop_cols]
