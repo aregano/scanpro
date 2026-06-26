@@ -186,7 +186,7 @@ class ScanproResult():
             elif kind == 'boxplot+stripplot': # code added:aregano
                 prop_table = prop_merged[prop_merged["simulated"]] if simulated else prop_merged  # if simulated = True, only show simulated data
                 sns.boxplot(data=prop_table, y=cluster, x=conds_col, showfliers=False, ax=ax, palette=palette, order=order)
-                sns.stripplot(data=prop_table, y=cluster, x=conds_col, jitter=True, ax=ax, alpha=0.5, size=4, order=order, showfliers=False, marker="o", size=7, linewidth=1, color="black")
+                sns.stripplot(data=prop_table, y=cluster, x=conds_col, jitter=True, ax=ax, alpha=0.5, size=4, order=order, marker="o", linewidth=1, color="black")
 
             ax.set_title(cluster)
             ax.set(ylabel='Proportions')
