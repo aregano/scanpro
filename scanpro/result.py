@@ -294,7 +294,7 @@ class ScanproResult():
              clusters=None,
              n_columns=3,
              figsize=None,
-             palette=None,
+             palette: str='Set1',
              show=True,
              verbosity=1,
              save=False):
@@ -326,6 +326,7 @@ class ScanproResult():
                                        n_columns=n_columns,
                                        figsize=figsize,
                                        show=show,
+                                       palette=palette,
                                        save=fname)
                 if show:
                     plt.show()
@@ -341,6 +342,7 @@ class ScanproResult():
                                     n_columns=n_columns,
                                     figsize=figsize,
                                     show=show,
+                                    palette=palette,
                                     save=save)
             if not show:
                 return fig.axes
