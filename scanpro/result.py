@@ -48,7 +48,7 @@ class ScanproResult():
     def _single_plot(self,
                      kind='stripplot',
                      clusters=None,
-                     palette:str='white',
+                     palette:str='Set1',
                      order=None,
                      n_columns=3,
                      figsize=None,
@@ -291,7 +291,7 @@ class ScanproResult():
              clusters=None,
              n_columns=3,
              figsize=None,
-             color=None,
+             palette=None,
              show=True,
              verbosity=1,
              save=False):
