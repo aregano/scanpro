@@ -185,7 +185,7 @@ class ScanproResult():
                 ax.legend_.remove()
             elif kind == 'boxplot+stripplot': # code added:aregano
                 prop_table = prop_merged[prop_merged["simulated"]] if simulated else prop_merged  # if simulated = True, only show simulated data
-                sns.boxplot(data=prop_table, y=cluster, x=conds_col, hue=sample_col,showfliers=False, ax=ax, palette=palette, order=order, dodge=False)
+                sns.boxplot(data=prop_table, y=cluster, x=conds_col, showfliers=False, ax=ax, palette=palette, order=order)
                 sns.stripplot(data=prop_table, y=cluster, x=conds_col, jitter=True, ax=ax, alpha=0.5, size=4, order=order, marker="o", linewidth=1, color="black")
             else:
                 raise ValueError(f"Invalid kind: {kind}. Must be one of 'stripplot', 'boxplot', 'barplot' or 'boxplot+stripplot'.")
