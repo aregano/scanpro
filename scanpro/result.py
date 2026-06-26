@@ -48,13 +48,15 @@ class ScanproResult():
     def _single_plot(self,
                      kind='stripplot',
                      clusters=None,
+                     palette:str='white',
+                     order=None,
                      n_columns=3,
                      figsize=None,
                      show=True,
                      save=False):
         """Plot proportions pro condition for one comparison
 
-        :param str kind: Kind of plot (stripplot, barplot and boxplot), defaults to 'stripplot'
+        :param str kind: Kind of plot (stripplot, barplot, boxplot and boxplot+stripplot), defaults to 'stripplot'
         :param list or str clusters: Specify clusters to plot, if None, all clusters will be plotted, defaults to None
         :param int n_columns: Number of columns in the figure, defaults to 3
         :param tuple figsize: Figure size, defaults to None (size is automatic)
@@ -68,6 +70,10 @@ class ScanproResult():
         results = self.sim_results if simulated else self.results
         design = self.sim_design if simulated else self.design
         conds_col = self.conds_col
+        
+        if order is None:
+            order = sorted(self.results.index.tolist())
+        
 
         # drop covariates from design matrix
         if self.covariates:
@@ -171,12 +177,17 @@ class ScanproResult():
 
             elif kind == 'boxplot':
                 prop_table = prop_merged[prop_merged["simulated"]] if simulated else prop_merged  # if simulated = True, only show simulated data
-                sns.boxplot(data=prop_table, y=cluster, x=conds_col, color="white", showfliers=False, ax=ax)
+                sns.boxplot(data=prop_table, y=cluster, x=conds_col, showfliers=False, ax=ax)
 
             elif kind == 'barplot':
                 prop_table = prop_merged[prop_merged["simulated"]] if simulated else prop_merged  # if simulated = True, only show simulated data
                 sns.barplot(data=prop_table, y=cluster, x=conds_col, hue=sample_col, ax=ax)
                 ax.legend_.remove()
+            elif kind == 'boxplot+stripplot':
+                prop_table = prop_merged[prop_merged["simulated"]] if simulated else prop_merged  # if simulated = True, only show simulated data
+                sns.boxplot(data=prop_table, y=cluster, x=conds_col, showfliers=False, ax=ax, palette=palette, order=order)
+                sns.stripplot(data=prop_table, y=cluster, x=conds_col, jitter=True, ax=ax, alpha=0.5, size=4, order=order, showfliers=False,
+                              marker="o", size=7, linewidth=1, color="black", order=x_order, legend=legend, color = 'black')
 
             ax.set_title(cluster)
             ax.set(ylabel='Proportions')
@@ -279,6 +290,7 @@ class ScanproResult():
              clusters=None,
              n_columns=3,
              figsize=None,
+             color=None,
              show=True,
              verbosity=1,
              save=False):
